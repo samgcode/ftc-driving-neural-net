@@ -1,0 +1,25 @@
+{
+  "name": "robot-sim",
+  "version": "0.1.0",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "webpack-dev-server",
+    "build": "npm run clean && webpack -p",
+    "clean": "rm -rf dist"
+  },
+  "browserslist": "defaults",
+  "dependencies": {
+    "@tensorflow/tfjs": "^1.0.4",
+    "p5": "^0.10.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "babel-loader": "^8.0.0",
+    "copy-webpack-plugin": "^5.1.1",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.41.4",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.10.1"
+  }
+}
