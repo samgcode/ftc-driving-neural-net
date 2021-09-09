@@ -83,10 +83,13 @@ class Robot {
     }
 
     let error = (dist.magSq() + hDist) / 10000
+    const velocity = new Vector(this.xSpeed, this.ySpeed, this.rotSpeed)
 
     if(error < acceptableError) {
-      const velocity = new Vector(this.xSpeed, this.ySpeed, this.rotSpeed)
-      error += velocity.mag()
+      console.log('v: ', velocity.mag())
+      error += (velocity.mag() + this.lifeSpan)
+    } else {
+      error -= velocity.mag()
     }
 
     return error
