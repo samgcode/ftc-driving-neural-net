@@ -31,6 +31,10 @@ class NeuralNetwork {
     return model
   }
 
+  dispose() {
+    this.model.dispose()
+  }
+
   copy() {
     return tf.tidy(() => {
       const modelCopy = this.createModel()

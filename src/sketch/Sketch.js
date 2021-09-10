@@ -103,6 +103,10 @@ class Sketch {
     this.bots.forEach(bot => {
       console.log(bot.fitness)
     })
+
+    for(let i = 0; i < this.bots.length/2; i++) {
+      this.bots[i].dispose
+    }
     this.bots = this.bots.splice(this.bots.length / 2, this.bots.length)
     return this.bots
   }

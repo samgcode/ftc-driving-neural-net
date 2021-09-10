@@ -10,13 +10,16 @@ class Robot {
     this.xSpeed = 0
     this.ySpeed = 0
     this.rotSpeed = 0
-    this.targetPos = targetPos
     this.fitness = 0
+    this.targetPos = targetPos
+
     this.lifeSpan = 0
+    this.spins = 0
+
     if (brain) {
       this.brain = brain.copy()
     } else {
-      this.brain = new NeuralNetwork(6, 8, 3)
+      this.brain = new NeuralNetwork(6, 15, 3)
     }
   }
 
@@ -29,7 +32,7 @@ class Robot {
   }
 
   update(draw) {
-    this.lifeSpan += 1
+    this.lifeSpan++
 
     let inputs = []
     inputs[0] = this.x
@@ -51,6 +54,14 @@ class Robot {
     if(draw) {
       this.drawRobot(this.x, this.y, this.h)
     }
+
+    if(this.h > 270 || this.h < -270) {
+      this.spins++
+    }
+  }
+
+  dispose() {
+    this.brain.dispose()
   }
 
   updateMotors() {
@@ -70,29 +81,32 @@ class Robot {
   }
 
   getFitness() {
-    const acceptableError = 1
+    const acceptableError = 2
 
-    const xDist = this.targetPos.x - this.x
-    const yDist = this.targetPos.y - this.y
-    let hDist = this.targetPos.h - this.h
+    const xDist = Math.abs(this.targetPos.x - this.x)
+    const yDist = Math.abs(this.targetPos.y - this.y)
+    let hDist = Math.abs(this.targetPos.h - this.h)
 
     const dist = new Vector(xDist, yDist)
-
+    
     if(Math.abs(hDist) > 180) {
       hDist = -(hDist - 180)
     }
 
-    let error = (dist.magSq() + hDist) / 10000
-    const velocity = new Vector(this.xSpeed, this.ySpeed, this.rotSpeed)
+    const baseFitness = (dist.magSq() + hDist) / 1000
+    const rotationFitness = hDist + this.spins*5
 
-    if(error < acceptableError) {
-      console.log('v: ', velocity.mag())
-      error += (velocity.mag() + this.lifeSpan)
+    let speedFitness = 0
+
+    const velocity = new Vector(this.xSpeed, this.ySpeed)
+    if(baseFitness < acceptableError) {
+      speedFitness = velocity.magSq() + this.rotSpeed
     } else {
-      error -= velocity.mag()
+      speedFitness = -(velocity.magSq() + this.rotSpeed)
     }
 
-    return error
+    return Math.abs(baseFitness + rotationFitness + speedFitness)
+
   }
 }
 

@@ -1,0 +1,4 @@
+current issues:
+- lack of changes after the initial values
+- always just goes in the general direction of the target and goes on forever
+- preformance decreases greatly when increasing neurons or population
