@@ -18,6 +18,7 @@ class Sketch {
       h: 0
     }
     this.draw = false
+    this.currentId = 0
   }
 
   setup() {
@@ -31,7 +32,8 @@ class Sketch {
     }
     this.bots = []
     for (let i = 0; i < populationSize; i++) {
-      this.bots.push(new Robot({ targetPos: this.targetPos }))
+      this.bots.push(new Robot({ targetPos: this.targetPos, id: this.currentId }))
+      this.currentId++
     }
 
     const button = createButton('Toggle draw')
@@ -80,7 +82,8 @@ class Sketch {
     console.log(bestBots)
 
     bestBots.forEach(bot => {
-      const child = new Robot({ targetPos: this.targetPos, brain: bot.brain })
+      const child = new Robot({ targetPos: this.targetPos, brain: bot.brain, id: this.currentId })
+      this.currentId++
       child.mutate(mutationRate)
       this.bots.push(child)
     })
@@ -89,25 +92,21 @@ class Sketch {
       bot.x = 500
       bot.y = 500
       bot.h = 0
+      bot.lifeSpan = 0
+      bot.spins = 0
     })
   }
 
   getBestBots() {
-    this.bots.forEach(bot => {
-      bot.fitness = bot.getFitness()
-    })
+    this.bots.forEach(bot => { bot.fitness = bot.getFitness() })
+    this.bots = this.bots.sort((a, b) => { return b.fitness - a.fitness })
 
-    this.bots = this.bots.sort((a, b) => {
-      return b.fitness - a.fitness
-    })
-    this.bots.forEach(bot => {
-      console.log(bot.fitness)
-    })
+    console.log(this.bots)
 
     for(let i = 0; i < this.bots.length/2; i++) {
-      this.bots[i].dispose
+      this.bots[i].dispose()
     }
-    this.bots = this.bots.splice(this.bots.length / 2, this.bots.length)
+    this.bots = this.bots.slice(this.bots.length / 2)
     return this.bots
   }
 

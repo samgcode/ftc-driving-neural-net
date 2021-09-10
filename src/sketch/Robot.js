@@ -3,7 +3,8 @@ import { size } from './constants'
 import { Vector } from 'p5'
 
 class Robot {
-  constructor({ targetPos, brain }) {
+  constructor({ targetPos, brain, id }) {
+    this.id = id
     this.x = 500
     this.y = 500
     this.h = 0
@@ -19,7 +20,7 @@ class Robot {
     if (brain) {
       this.brain = brain.copy()
     } else {
-      this.brain = new NeuralNetwork(6, 15, 3)
+      this.brain = new NeuralNetwork(3, 6, 3)
     }
   }
 
@@ -35,12 +36,16 @@ class Robot {
     this.lifeSpan++
 
     let inputs = []
-    inputs[0] = this.x
-    inputs[1] = this.y
-    inputs[2] = this.h
-    inputs[3] = this.targetPos.x
-    inputs[4] = this.targetPos.y
-    inputs[5] = this.targetPos.h
+    // inputs[0] = this.x
+    // inputs[1] = this.y
+    // inputs[2] = this.h
+    // inputs[3] = this.targetPos.x
+    // inputs[4] = this.targetPos.y
+    // inputs[5] = this.targetPos.h
+
+    inputs[0] = this.targetPos.x-this.x
+    inputs[1] = this.targetPos.y-this.y
+    inputs[2] = this.targetPos.h - this.h
 
     const output = this.brain.predict(inputs)
     // console.log(output)
@@ -55,7 +60,7 @@ class Robot {
       this.drawRobot(this.x, this.y, this.h)
     }
 
-    if(this.h > 270 || this.h < -270) {
+    if(this.h > 220 || this.h < -220) {
       this.spins++
     }
   }
@@ -93,19 +98,22 @@ class Robot {
       hDist = -(hDist - 180)
     }
 
-    const baseFitness = (dist.magSq() + hDist) / 1000
-    const rotationFitness = hDist + this.spins*5
+    const baseFitness = dist.magSq() / 1000
+    const rotationFitness = hDist + this.spins*50
 
-    let speedFitness = 0
+    let speedFitness = 1000
+    let lifeSpanFitness = 1000
 
     const velocity = new Vector(this.xSpeed, this.ySpeed)
     if(baseFitness < acceptableError) {
-      speedFitness = velocity.magSq() + this.rotSpeed
-    } else {
-      speedFitness = -(velocity.magSq() + this.rotSpeed)
+      speedFitness = (velocity.magSq() + this.rotSpeed) * 25
+      lifeSpanFitness = this.lifeSpan * 5
     }
 
-    return Math.abs(baseFitness + rotationFitness + speedFitness)
+    const totalFitness = Math.abs(baseFitness + rotationFitness + speedFitness + lifeSpanFitness)
+
+    console.log(`Total: ${totalFitness}, Base: ${baseFitness}, rotation: ${rotationFitness}, speed: ${speedFitness}`)
+    return totalFitness
 
   }
 }
