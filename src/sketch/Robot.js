@@ -22,7 +22,7 @@ class Robot {
     if (brain) {
       this.brain = brain.copy()
     } else {
-      this.brain = new NeuralNetwork(3, 3, 3)
+      this.brain = new NeuralNetwork(6, 2, 3)
     }
   }
 
@@ -35,7 +35,6 @@ class Robot {
   }
 
   update(draw) {
-    console.log(this.targetPos)
     this.lifeSpan++
 
     let inputs = []
@@ -48,7 +47,10 @@ class Robot {
 
     inputs[0] = this.targetPos.x-this.x
     inputs[1] = this.targetPos.y-this.y
-    inputs[2] = this.targetPos.h - this.h
+    inputs[2] = this.targetPos.h-this.h
+    inputs[3] = (this.targetPos.x-this.x)*random(0.8, 1.2)
+    inputs[4] = (this.targetPos.y-this.y)*random(0.8, 1.2)
+    inputs[5] = (this.targetPos.h-this.h)*random(0.8, 1.2)
 
     const output = this.brain.predict(inputs)
     // console.log(output)
@@ -72,7 +74,9 @@ class Robot {
 
     const dist = new Vector(xDist, yDist)
 
-    if(dist.magSq() < this.acceptableError) {
+    if(dist.mag() < this.acceptableError*3) {
+
+      console.log('test')
       this.targetTime++
     }
   }
@@ -97,7 +101,7 @@ class Robot {
     pop()
   }
 
-  getFitness() {
+  getFitness({posWeight, rotationWeight, speedWeight, lifeSpanWeight, targetTimeWeight}) {
     const xDist = Math.abs(this.targetPos.x - this.x)
     const yDist = Math.abs(this.targetPos.y - this.y)
     let hDist = Math.abs(this.targetPos.h - this.h)
@@ -108,8 +112,8 @@ class Robot {
       hDist = -(hDist - 180)
     }
 
-    const baseFitness = dist.magSq() / 1000
-    const rotationFitness = hDist + this.spins*50
+    const baseFitness = dist.magSq() / 100
+    const rotationFitness = Math.abs(hDist + this.spins*50)
 
     let speedFitness = 1000
     let lifeSpanFitness = 1000
@@ -120,9 +124,11 @@ class Robot {
       lifeSpanFitness = this.lifeSpan * 200
     }
 
-    const totalFitness = Math.abs(baseFitness + rotationFitness + speedFitness + lifeSpanFitness) - this.targetTime*10
+    const totalFitness = Math.abs(baseFitness*posWeight + rotationFitness*rotationWeight + speedFitness*speedWeight + lifeSpanFitness*lifeSpanWeight) - this.targetTime*targetTimeWeight
 
-    console.log(`Total: ${totalFitness}, Base: ${baseFitness}, rotation: ${rotationFitness}, speed: ${speedFitness}, lifespan: ${lifeSpanFitness}`)
+    // console.log(`Total: ${totalFitness}, Base: ${baseFitness}, rotation: ${rotationFitness}, speed: ${speedFitness}, lifespan: ${lifeSpanFitness}, target: ${this.targetTime*10}`)
+    // console.log(`target: ${this.targetTime*10}`)
+    console.log(`Fitness: ${totalFitness}, Id: ${this.id}`)
     return totalFitness
 
   }

@@ -20,6 +20,7 @@ class Sketch {
     this.draw = false
     this.currentId = 0
     this.acceptableError = 2
+    this.generation = 0
   }
 
   setup() {
@@ -27,8 +28,8 @@ class Sketch {
     frameRate(50)
 
     this.targetPos = {
-      x: random(30, width - 30),
-      y: random(30, width - 30),
+      x: random(100, width - 100),
+      y: random(100, width - 100),
       h: random(0, 360)
     }
     this.bots = []
@@ -47,9 +48,11 @@ class Sketch {
   }
 
   update() {
+    
     background(0)
     stroke(255)
     angleMode(DEGREES)
+
 
     this.drawRobots()
 
@@ -59,9 +62,17 @@ class Sketch {
     if(frameCount % 50 === 0) {
       console.log('frame: ', frameCount)
     }
-    if (frameCount % 700 === 0) {
+    if (frameCount % 600 === 0) {
       this.newGeneration()
     }
+
+    this.drawText()
+  }
+  
+  drawText() {
+    fill('white')
+    textSize(20)
+    text(`Generation: ${this.generation}`, 700, 900)
   }
 
   drawTargetPos(x, y, h, size = 100) {
@@ -81,14 +92,15 @@ class Sketch {
   }
 
   newGeneration() {
+    this.generation++
     const bestBots = this.getBestBots()
     console.log(bestBots)
 
-    // this.targetPos = {
-    //   x: random(30, width - 30),
-    //   y: random(30, width - 30),
-    //   h: random(0, 360)
-    // }
+    this.targetPos = {
+      x: this.targetPos.x+random(-50, 50),
+      y: this.targetPos.y+random(-50, 50),
+      h: this.targetPos.h+random(-50, 50),
+    }
 
     bestBots.forEach(bot => {
       const child = new Robot({ targetPos: this.targetPos, brain: bot.brain, id: this.currentId })
@@ -111,7 +123,7 @@ class Sketch {
   getBestBots() {
     let totalFitness = 0
     this.bots.forEach(bot => { 
-      bot.fitness = bot.getFitness()
+      bot.fitness = bot.getFitness({posWeight:50, rotationWeight:1, speedWeight:50, lifeSpanWeight:1, targetTimeWeight:10})
       totalFitness += bot.fitness
     })
     this.bots.forEach(bot => {
@@ -122,7 +134,10 @@ class Sketch {
 
     this.bots = this.bots.sort((a, b) => { return b.fitness - a.fitness })
 
-    console.log(this.bots)
+    // console.log(this.bots)
+    this.bots.forEach(bot => {
+      console.log(`bot: ${bot.id}, fitness: ${bot.fitness}`)
+    })
 
     for(let i = 0; i < this.bots.length/2; i++) {
       this.bots[i].dispose()
