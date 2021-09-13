@@ -3,7 +3,7 @@ import { size } from './constants'
 import { Vector } from 'p5'
 
 class Robot {
-  constructor({ targetPos, brain, id }) {
+  constructor({ brain, id }) {
     this.id = id
     this.x = 500
     this.y = 500
@@ -12,15 +12,17 @@ class Robot {
     this.ySpeed = 0
     this.rotSpeed = 0
     this.fitness = 0
-    this.targetPos = targetPos
+    this.targetPos = { x: 0, y: 0, h: 0 }
 
     this.lifeSpan = 0
     this.spins = 0
+    this.targetTime = 0
+    this.acceptableError = 2
 
     if (brain) {
       this.brain = brain.copy()
     } else {
-      this.brain = new NeuralNetwork(3, 6, 3)
+      this.brain = new NeuralNetwork(3, 3, 3)
     }
   }
 
@@ -33,6 +35,7 @@ class Robot {
   }
 
   update(draw) {
+    console.log(this.targetPos)
     this.lifeSpan++
 
     let inputs = []
@@ -63,6 +66,15 @@ class Robot {
     if(this.h > 220 || this.h < -220) {
       this.spins++
     }
+
+    const xDist = Math.abs(this.targetPos.x - this.x)
+    const yDist = Math.abs(this.targetPos.y - this.y)
+
+    const dist = new Vector(xDist, yDist)
+
+    if(dist.magSq() < this.acceptableError) {
+      this.targetTime++
+    }
   }
 
   dispose() {
@@ -86,8 +98,6 @@ class Robot {
   }
 
   getFitness() {
-    const acceptableError = 2
-
     const xDist = Math.abs(this.targetPos.x - this.x)
     const yDist = Math.abs(this.targetPos.y - this.y)
     let hDist = Math.abs(this.targetPos.h - this.h)
@@ -105,14 +115,14 @@ class Robot {
     let lifeSpanFitness = 1000
 
     const velocity = new Vector(this.xSpeed, this.ySpeed)
-    if(baseFitness < acceptableError) {
+    if(baseFitness < this.acceptableError) {
       speedFitness = (velocity.magSq() + this.rotSpeed) * 25
-      lifeSpanFitness = this.lifeSpan * 5
+      lifeSpanFitness = this.lifeSpan * 200
     }
 
-    const totalFitness = Math.abs(baseFitness + rotationFitness + speedFitness + lifeSpanFitness)
+    const totalFitness = Math.abs(baseFitness + rotationFitness + speedFitness + lifeSpanFitness) - this.targetTime*10
 
-    console.log(`Total: ${totalFitness}, Base: ${baseFitness}, rotation: ${rotationFitness}, speed: ${speedFitness}`)
+    console.log(`Total: ${totalFitness}, Base: ${baseFitness}, rotation: ${rotationFitness}, speed: ${speedFitness}, lifespan: ${lifeSpanFitness}`)
     return totalFitness
 
   }

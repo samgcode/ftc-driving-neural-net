@@ -19,6 +19,7 @@ class Sketch {
     }
     this.draw = false
     this.currentId = 0
+    this.acceptableError = 2
   }
 
   setup() {
@@ -32,7 +33,9 @@ class Sketch {
     }
     this.bots = []
     for (let i = 0; i < populationSize; i++) {
-      this.bots.push(new Robot({ targetPos: this.targetPos, id: this.currentId }))
+      const robot = new Robot({ targetPos: this.targetPos, id: this.currentId })
+      robot.targetPos = this.targetPos
+      this.bots.push(robot)
       this.currentId++
     }
 
@@ -56,7 +59,7 @@ class Sketch {
     if(frameCount % 50 === 0) {
       console.log('frame: ', frameCount)
     }
-    if (frameCount % 500 === 0) {
+    if (frameCount % 700 === 0) {
       this.newGeneration()
     }
   }
@@ -81,10 +84,17 @@ class Sketch {
     const bestBots = this.getBestBots()
     console.log(bestBots)
 
+    // this.targetPos = {
+    //   x: random(30, width - 30),
+    //   y: random(30, width - 30),
+    //   h: random(0, 360)
+    // }
+
     bestBots.forEach(bot => {
       const child = new Robot({ targetPos: this.targetPos, brain: bot.brain, id: this.currentId })
       this.currentId++
       child.mutate(mutationRate)
+      child.targetPos = this.targetPos
       this.bots.push(child)
     })
 
@@ -94,11 +104,22 @@ class Sketch {
       bot.h = 0
       bot.lifeSpan = 0
       bot.spins = 0
+      bot.targetPos = this.targetPos
     })
   }
 
   getBestBots() {
-    this.bots.forEach(bot => { bot.fitness = bot.getFitness() })
+    let totalFitness = 0
+    this.bots.forEach(bot => { 
+      bot.fitness = bot.getFitness()
+      totalFitness += bot.fitness
+    })
+    this.bots.forEach(bot => {
+      bot.fitness = bot.fitness/totalFitness
+    })
+
+
+
     this.bots = this.bots.sort((a, b) => { return b.fitness - a.fitness })
 
     console.log(this.bots)
